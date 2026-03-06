@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Frontend build/deps
+frontend/node_modules/
+frontend/dist/
+
+# Backend build/deps
+backend/tripzone-backend/target/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

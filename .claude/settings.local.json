@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create vite@latest . -- --template react)",
+      "Bash(npm install)",
+      "Bash(npm install axios react-router-dom)",
+      "Bash(mkdir -p pages/common pages/user pages/seller pages/admin components/layout components/lodging components/booking components/inquiry components/common api mock hooks store constants router)",
+      "Bash(rm -f App.css index.css assets/react.svg)",
+      "Bash(npm run build)",
+      "Bash(open -a Safari http://localhost:5173/)",
+      "Bash(open -a Safari http://localhost:5174)",
+      "Bash(ngrok version)",
+      "Bash(brew install ngrok/ngrok/ngrok)",
+      "Bash(ngrok config add-authtoken 39I3Ht82JNYCbz4Uj3wfYZcNLYq_88HuptigAHpcKbBGVsy2N)",
+      "Bash(lsof -ti:5174)",
+      "Bash(npm install --save-dev json-server@0.17.4)",
+      "Bash(curl -v \"http://localhost:3001/lodgings?region=%EA%B0%95%EC%9B%90\")",
+      "Bash(curl -s \"http://localhost:3001/bookings?userId=1\")",
+      "Bash(curl -s -X POST http://localhost:3001/bookings -H \"Content-Type: application/json\" -d '{\"\"lodgingId\"\":1,\"\"lodgingName\"\":\"\"테스트\"\",\"\"checkIn\"\":\"\"2026-04-01\"\",\"\"checkOut\"\":\"\"2026-04-03\"\",\"\"guests\"\":2,\"\"totalPrice\"\":240000,\"\"bookingStatus\"\":\"\"CONFIRMED\"\",\"\"userId\"\":1}' )",
+      "Bash(java -version)",
+      "Bash(mvn -version)",
+      "Bash(brew install --cask temurin@17)",
+      "Bash(brew install openjdk@17)",
+      "Bash(export PATH=\"/opt/homebrew/opt/openjdk@17/bin:$PATH\")",
+      "Bash(brew install maven)",
+      "Bash(export JAVA_HOME=\"/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home\")",
+      "Bash(export PATH=\"$JAVA_HOME/bin:$PATH\")",
+      "Bash(__NEW_LINE_b62c4578a919c3cb__ mvn archetype:generate -DgroupId=com.tripzone -DartifactId=tripzone-backend -DarchetypeArtifactId=maven-archetype-quickstart -DarchetypeVersion=1.4 -DinteractiveMode=false)",
+      "Bash(mvn archetype:generate -DgroupId=com.tripzone -DartifactId=tripzone-backend -DarchetypeArtifactId=maven-archetype-quickstart -DarchetypeVersion=1.4 -DinteractiveMode=false)"
+    ]
+  }
+}
