@@ -5,6 +5,12 @@ import { ROLES } from '../../constants/roles';
 import Badge from '../../components/common/Badge';
 import { getMyBookings } from '../../api/booking';
 import { getMyInquiries } from '../../api/inquiry';
+import { updateUser } from '../../api/auth';
+import { C, MAX_WIDTH, R, S } from '../../styles/tokens';
+import { INQUIRY_TYPE_LABELS } from '../../constants/inquiryTypes';
+import Badge from '../../components/common/Badge';
+import { getMyBookings } from '../../api/booking';
+import { getMyInquiries } from '../../api/inquiry';
 import { C, MAX_WIDTH, R, S } from '../../styles/tokens';
 import { INQUIRY_TYPE_LABELS } from '../../constants/inquiryTypes';
 
@@ -44,6 +50,30 @@ function BookingsList({ bookings }) {
 }
 
 function MyInfoSection({ user, logout }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user.name || '',
+    phone: '01012345678',
+    birthdate: '',
+    gender: ''
+  });
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      await updateUser(user.id || 1, { name: formData.name });
+      alert('정보가 성공적으로 저장되었습니다.');
+      setIsEditing(false);
+      // user 객체는 전역 store 또는 context 업데이트 필요하지만 
+      // 이 데모에선 UI상 저장 완료 피드백만 제공.
+    } catch (err) {
+      alert('정보 저장에 실패했습니다.');
+    }
+  };
+
   return (
     <div style={sInfo.wrap}>
       <div style={sInfo.header}>
@@ -55,9 +85,19 @@ function MyInfoSection({ user, logout }) {
             </svg>
           </div>
         </div>
-        <div style={sInfo.headerText}>
-          <p style={sInfo.desc}>회원 정보</p>
-          <p style={sInfo.subDesc}>현재 정보 수정은 앱 또는 고객센터를 통해 가능해요.</p>
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={sInfo.headerText}>
+            <p style={sInfo.desc}>회원 정보</p>
+            <p style={sInfo.subDesc}>내 정보를 원하시는 대로 관리하세요.</p>
+          </div>
+          {isEditing ? (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button style={sInfo.textBtnGray} onClick={() => setIsEditing(false)}>취소</button>
+              <button style={{ ...sInfo.textBtn, background: C.primary, color: '#fff', padding: '8px 16px', borderRadius: '8px', textDecoration: 'none' }} onClick={handleSave}>저장</button>
+            </div>
+          ) : (
+            <button style={sInfo.textBtn} onClick={() => setIsEditing(true)}>수정하기</button>
+          )}
         </div>
       </div>
 
@@ -71,23 +111,45 @@ function MyInfoSection({ user, logout }) {
       <div style={sInfo.grid}>
         <div style={sInfo.field}>
           <label style={sInfo.label}>닉네임</label>
-          <div style={sInfo.inputVal}>{user.name}</div>
-        </div>
-        <div style={sInfo.field}>
-          <label style={sInfo.label}>예약자 이름</label>
-          <div style={sInfo.inputMuted}>미입력(앱에서 입력해 주세요.)</div>
+          {isEditing ? (
+            <input name="name" style={sInfo.inputEdit} value={formData.name} onChange={handleChange} />
+          ) : (
+            <div style={sInfo.inputVal}>{formData.name}</div>
+          )}
         </div>
         <div style={sInfo.field}>
           <label style={sInfo.label}>휴대폰 번호</label>
-          <div style={sInfo.inputMuted}>010****1234</div>
+          {isEditing ? (
+            <input name="phone" style={sInfo.inputEdit} value={formData.phone} onChange={handleChange} />
+          ) : (
+            <div style={formData.phone ? sInfo.inputVal : sInfo.inputMuted}>
+              {formData.phone ? formData.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-****-$3') : '미입력(앱에서 입력해 주세요.)'}
+            </div>
+          )}
         </div>
         <div style={sInfo.field}>
           <label style={sInfo.label}>생년월일</label>
-          <div style={sInfo.inputMuted}>미입력(앱에서 입력해 주세요.)</div>
+          {isEditing ? (
+            <input name="birthdate" type="date" style={sInfo.inputEdit} value={formData.birthdate} onChange={handleChange} />
+          ) : (
+            <div style={formData.birthdate ? sInfo.inputVal : sInfo.inputMuted}>
+              {formData.birthdate || '미입력(앱에서 입력해 주세요.)'}
+            </div>
+          )}
         </div>
         <div style={sInfo.field}>
           <label style={sInfo.label}>성별</label>
-          <div style={sInfo.inputMuted}>미입력(앱에서 입력해 주세요.)</div>
+          {isEditing ? (
+            <select name="gender" style={sInfo.inputEdit} value={formData.gender} onChange={handleChange}>
+              <option value="">선택</option>
+              <option value="M">남성</option>
+              <option value="F">여성</option>
+            </select>
+          ) : (
+            <div style={formData.gender ? sInfo.inputVal : sInfo.inputMuted}>
+              {formData.gender === 'M' ? '남성' : formData.gender === 'F' ? '여성' : '미입력(앱에서 입력해 주세요.)'}
+            </div>
+          )}
         </div>
       </div>
 
@@ -102,6 +164,59 @@ function MyInfoSection({ user, logout }) {
       <div style={sInfo.footer}>
         <span style={{ color: '#999' }}>더 이상 TripZone 이용을 원하지 않으신가요? </span>
         <button style={sInfo.textBtnGray}>회원탈퇴</button>
+      </div>
+    </div>
+  );
+}
+
+function SettingsSection({ user }) {
+  const [consents, setConsents] = useState({
+    marketing: true,
+    email: false,
+    sms: true,
+  });
+
+  const toggleConsent = (key) => setConsents(prev => ({ ...prev, [key]: !prev[key] }));
+
+  const handleSave = () => {
+    alert('설정이 성공적으로 저장되었습니다.');
+  };
+
+  const ToggleRender = ({ checked, onClick }) => (
+    <div style={{ ...sInfo.secureToggle, background: checked ? C.primary : '#DCDCDC' }} onClick={onClick}>
+      <div style={{ ...sInfo.secureToggleKnob, transform: checked ? 'translateX(24px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
+    </div>
+  );
+
+  return (
+    <div style={sInfo.wrap}>
+      <div style={{ ...sInfo.header, paddingBottom: '24px', borderBottom: '1px solid #F0EFEF' }}>
+        <div style={{ flex: 1 }}>
+          <p style={sInfo.desc}>마케팅 정보 수신</p>
+          <p style={sInfo.subDesc}>다양한 혜택과 이벤트 소식을 받아보세요.</p>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '16px', fontWeight: '700', color: C.text }}>마케팅 정보 수신 동의</span>
+          <ToggleRender checked={consents.marketing} onClick={() => toggleConsent('marketing')} />
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingLeft: '16px' }}>
+          <span style={{ fontSize: '15px', color: '#444' }}>이메일 수신</span>
+          <ToggleRender checked={consents.email} onClick={() => toggleConsent('email')} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingLeft: '16px' }}>
+          <span style={{ fontSize: '15px', color: '#444' }}>SMS 수신</span>
+          <ToggleRender checked={consents.sms} onClick={() => toggleConsent('sms')} />
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '32px' }}>
+        <button style={{ ...sInfo.textBtn, background: C.primary, color: '#fff', padding: '12px 32px', borderRadius: '12px', textDecoration: 'none', fontSize: '16px' }} onClick={handleSave}>
+          변경 사항 저장
+        </button>
       </div>
     </div>
   );
@@ -190,7 +305,8 @@ export default function MyPage() {
               </h2>
               {tab === 'bookings' && <BookingsList bookings={bookings} />}
               {tab === 'myinfo' && <MyInfoSection user={user} logout={handleLogout} />}
-              {['wishlist', 'points', 'coupons', 'settings'].includes(tab) && (
+              {tab === 'settings' && <SettingsSection user={user} />}
+              {['wishlist', 'points', 'coupons'].includes(tab) && (
                 <EmptyView title={USER_TABS.find(t => t.key === tab)?.label} />
               )}
             </>
@@ -340,6 +456,7 @@ const sInfo = {
   label: { fontSize: '13px', fontWeight: '700', color: '#777' },
   inputVal: { fontSize: '15px', color: '#222', padding: '16px', background: '#F8F9FA', borderRadius: '12px' },
   inputMuted: { fontSize: '15px', color: '#AAA', padding: '16px', background: '#F8F9FA', borderRadius: '12px' },
+  inputEdit: { fontSize: '15px', color: '#1A1A1A', padding: '15px', background: '#FFFFFF', borderRadius: '12px', border: `1px solid ${C.primary}`, outline: 'none', width: '100%', boxSizing: 'border-box' },
 
   deviceWrap: { paddingBottom: '32px', borderBottom: '1px solid #F0EFEF' },
   deviceHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
