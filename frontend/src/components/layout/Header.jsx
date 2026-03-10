@@ -140,12 +140,16 @@ export default function Header() {
             </>
           ) : (
             <div style={s.profileWrap}>
-              {(roleLinks[user.role] || []).map(l => (
-                <Link key={l.to} to={l.to} style={s.navLink}>{l.label}</Link>
-              ))}
-              <div style={s.avatarWrap} onClick={() => setMenuOpen(v => !v)}>
-                <div style={s.avatar}>{initial}</div>
-              </div>
+              <button style={s.profilePillBtn} onClick={() => setMenuOpen(v => !v)}>
+                <div style={s.profilePillIcon}>🎈</div>
+                <div style={s.profilePillText}>
+                  <div style={s.profilePillName}>{user.name}</div>
+                  <div style={s.profilePillGrade}>
+                    <span style={{ color: '#8A7DF5', fontWeight: 800 }}>Basic</span> 회원
+                  </div>
+                </div>
+                <div style={s.profilePillHamburger}>☰</div>
+              </button>
               {menuOpen && (
                 <div style={s.dropdown}>
                   <div style={s.dropdownHeader}>
@@ -356,22 +360,53 @@ const s = {
     background: 'linear-gradient(135deg, #F05A5C 0%, #E8484A 100%)',
   },
   profileWrap: { display: 'flex', alignItems: 'center', gap: '4px', position: 'relative' },
-  avatarWrap: { cursor: 'pointer', marginLeft: '6px' },
-  avatar: {
+  profilePillBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    border: '1px solid #EAEAEA',
+    borderRadius: '999px',
+    padding: '6px 14px 6px 6px',
+    background: '#fff',
+    cursor: 'pointer',
+    transition: 'background 0.2s',
+  },
+  profilePillIcon: {
     width: '32px',
     height: '32px',
     borderRadius: '50%',
-    background: 'linear-gradient(135deg, #F05A5C 0%, #E8484A 100%)',
-    color: '#fff',
+    background: '#FFE0E0',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '13px',
-    fontWeight: '700',
+    fontSize: '18px',
+  },
+  profilePillText: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '2px',
+  },
+  profilePillName: {
+    fontSize: '14px',
+    fontWeight: '800',
+    color: '#333',
+    lineHeight: 1,
+  },
+  profilePillGrade: {
+    fontSize: '12px',
+    color: '#666',
+    lineHeight: 1,
+  },
+  profilePillHamburger: {
+    fontSize: '18px',
+    color: '#333',
+    marginLeft: '6px',
+    fontWeight: 'bold',
   },
   dropdown: {
     position: 'absolute',
-    top: '44px',
+    top: '56px',
     right: 0,
     background: '#fff',
     border: '1px solid #EAEAEA',
