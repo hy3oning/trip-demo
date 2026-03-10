@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import { useAuth } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 import GuestCounter from '../../components/booking/GuestCounter';
 import { getLodging } from '../../api/lodging';
 import { createBooking } from '../../api/booking';

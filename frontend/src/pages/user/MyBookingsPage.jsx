@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { deleteBooking, getMyBookings, updateBooking } from '../../api/booking';
-import { useAuth } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 const STATUS_LABEL = { CONFIRMED: '예약 확정', CANCELLED: '취소됨', PENDING: '대기 중' };
@@ -28,7 +28,7 @@ export default function MyBookingsPage() {
     return Math.max(0, Math.floor((outUtc - inUtc) / 86400000));
   };
 
-  const loadBookings = () => {
+  const loadBookings = useCallback(() => {
     getMyBookings(user?.userId || 1)
       .then((res) => {
         setBookings(Array.isArray(res.data) ? res.data : []);
@@ -37,11 +37,11 @@ export default function MyBookingsPage() {
       .catch(() => {
         setLoadError('예약 목록을 새로고침하지 못했습니다. 잠시 후 다시 시도해주세요.');
       });
-  };
+  }, [user?.userId]);
 
   useEffect(() => {
     loadBookings();
-  }, [user]);
+  }, [loadBookings]);
 
   const startEdit = (booking) => {
     setEditingId(resolveBookingId(booking));

@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import { ROLES } from '../../constants/roles';
 import Badge from '../../components/common/Badge';
 import { getMyBookings } from '../../api/booking';
-import { getMyInquiries } from '../../api/inquiry';
 import { updateUser } from '../../api/auth';
-import { C, MAX_WIDTH, R, S } from '../../styles/tokens';
-import { INQUIRY_TYPE_LABELS } from '../../constants/inquiryTypes';
+import { C } from '../../styles/tokens';
 
 const USER_TABS = [
   { key: 'bookings', label: '예약 내역' },
@@ -28,7 +26,7 @@ function BookingsList({ bookings }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {bookings.map(b => (
-        <div key={b.bookingId} style={sCard.card}>
+        <div key={b.bookingId ?? b.id} style={sCard.card}>
           <img src={b.thumbnailUrl} alt={b.lodgingName} style={sCard.img} />
           <div style={sCard.body}>
             <div style={sCard.header}>
@@ -36,7 +34,7 @@ function BookingsList({ bookings }) {
               <Badge status={b.bookingStatus} />
             </div>
             <p style={sCard.meta}>{b.checkIn} ~ {b.checkOut} · {b.guests}명</p>
-            <p style={sCard.price}>{b.totalPrice.toLocaleString()}원</p>
+            <p style={sCard.price}>{Number(b.totalPrice || 0).toLocaleString()}원</p>
           </div>
         </div>
       ))}
@@ -59,11 +57,11 @@ function MyInfoSection({ user, logout, updateCurrentUser }) {
 
   const handleSave = async () => {
     try {
-      await updateUser(user.id || 1, { name: formData.name });
+      await updateUser(user.userId || user.id || 1, { name: formData.name });
       updateCurrentUser({ name: formData.name });
       alert('정보가 성공적으로 저장되었습니다.');
       setIsEditing(false);
-    } catch (err) {
+    } catch {
       alert('정보 저장에 실패했습니다.');
     }
   };
@@ -163,7 +161,19 @@ function MyInfoSection({ user, logout, updateCurrentUser }) {
   );
 }
 
-function SettingsSection({ user }) {
+function ConsentToggle({ checked, onClick }) {
+  return (
+    <button
+      type="button"
+      style={{ ...sInfo.secureToggle, background: checked ? C.primary : '#DCDCDC', border: 'none', cursor: 'pointer' }}
+      onClick={onClick}
+    >
+      <div style={{ ...sInfo.secureToggleKnob, transform: checked ? 'translateX(24px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
+    </button>
+  );
+}
+
+function SettingsSection() {
   const [consents, setConsents] = useState({
     marketing: true,
     email: false,
@@ -175,12 +185,6 @@ function SettingsSection({ user }) {
   const handleSave = () => {
     alert('설정이 성공적으로 저장되었습니다.');
   };
-
-  const ToggleRender = ({ checked, onClick }) => (
-    <div style={{ ...sInfo.secureToggle, background: checked ? C.primary : '#DCDCDC' }} onClick={onClick}>
-      <div style={{ ...sInfo.secureToggleKnob, transform: checked ? 'translateX(24px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
-    </div>
-  );
 
   return (
     <div style={sInfo.wrap}>
@@ -194,16 +198,16 @@ function SettingsSection({ user }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '16px', fontWeight: '700', color: C.text }}>마케팅 정보 수신 동의</span>
-          <ToggleRender checked={consents.marketing} onClick={() => toggleConsent('marketing')} />
+          <ConsentToggle checked={consents.marketing} onClick={() => toggleConsent('marketing')} />
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingLeft: '16px' }}>
           <span style={{ fontSize: '15px', color: '#444' }}>이메일 수신</span>
-          <ToggleRender checked={consents.email} onClick={() => toggleConsent('email')} />
+          <ConsentToggle checked={consents.email} onClick={() => toggleConsent('email')} />
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingLeft: '16px' }}>
           <span style={{ fontSize: '15px', color: '#444' }}>SMS 수신</span>
-          <ToggleRender checked={consents.sms} onClick={() => toggleConsent('sms')} />
+          <ConsentToggle checked={consents.sms} onClick={() => toggleConsent('sms')} />
         </div>
       </div>
 
@@ -230,12 +234,10 @@ export default function MyPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('bookings');
   const [bookings, setBookings] = useState([]);
-  const [inquiries, setInquiries] = useState([]);
 
   useEffect(() => {
     if (user?.role === ROLES.USER) {
       getMyBookings(user.userId || 1).then(res => setBookings(res.data)).catch(() => { });
-      getMyInquiries(user.userId || 1).then(res => setInquiries(res.data)).catch(() => { });
     }
   }, [user]);
 
@@ -299,7 +301,7 @@ export default function MyPage() {
               </h2>
               {tab === 'bookings' && <BookingsList bookings={bookings} />}
               {tab === 'myinfo' && <MyInfoSection user={user} logout={handleLogout} updateCurrentUser={updateCurrentUser} />}
-              {tab === 'settings' && <SettingsSection user={user} />}
+              {tab === 'settings' && <SettingsSection />}
               {['wishlist', 'points', 'coupons'].includes(tab) && (
                 <EmptyView title={USER_TABS.find(t => t.key === tab)?.label} />
               )}

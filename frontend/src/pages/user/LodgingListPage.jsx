@@ -219,6 +219,7 @@ export default function LodgingListPage() {
       <div style={s.searchSticky}>
         <div style={s.searchInner}>
           <SearchBar
+            key={[keyword, region, checkIn, checkOut, Number(guests)].join('|')}
             defaultKeyword={keyword}
             defaultRegion={region}
             defaultCheckIn={checkIn}

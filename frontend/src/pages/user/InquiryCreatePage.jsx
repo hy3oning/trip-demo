@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 import { INQUIRY_TYPES, INQUIRY_TYPE_LABELS } from '../../constants/inquiryTypes';
 import { ROLES } from '../../constants/roles';
 import { createInquiry } from '../../api/inquiry';

@@ -283,17 +283,12 @@ function GuestPopover({ open, anchorRef, panelRef, guests, onChange, onClose }) 
   );
 }
 
-function DateRangePopover({ open, anchorRef, panelRef, checkIn, checkOut, onChange, onClose }) {
-  const [cursor, setCursor] = useState(() => parseISO(checkIn) || new Date());
+function DateRangePopover({ anchorRef, panelRef, checkIn, checkOut, initialCursor, onChange, onClose }) {
+  const [cursor, setCursor] = useState(() => initialCursor);
   const [pos, setPos] = useState(null);
 
   useEffect(() => {
-    if (!open) return;
-    setCursor(parseISO(checkIn) || new Date());
-  }, [open, checkIn]);
-
-  useEffect(() => {
-    if (!open || !anchorRef.current) return;
+    if (!anchorRef.current) return;
     const update = () => {
       const rect = anchorRef.current.getBoundingClientRect();
       const isMobile = window.innerWidth <= 900;
@@ -314,9 +309,9 @@ function DateRangePopover({ open, anchorRef, panelRef, checkIn, checkOut, onChan
       window.removeEventListener('resize', update);
       window.removeEventListener('scroll', update, true);
     };
-  }, [open, anchorRef]);
+  }, [anchorRef]);
 
-  if (!open || !pos) return null;
+  if (!pos) return null;
 
   const startDate = parseISO(checkIn);
   const endDate = parseISO(checkOut);
@@ -403,6 +398,7 @@ export default function SearchBar({ defaultKeyword = '', defaultRegion = '', def
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGuest, setShowGuest] = useState(false);
   const [activeSuggest, setActiveSuggest] = useState(0);
+  const [calendarSeed, setCalendarSeed] = useState(() => parseISO(defaultCheckIn) || new Date());
 
   const tab = TAB_CONFIG[activeTab] || TAB_CONFIG[0];
 
@@ -417,25 +413,6 @@ export default function SearchBar({ defaultKeyword = '', defaultRegion = '', def
       })
       .slice(0, 12);
   }, [keyword, tab.key]);
-
-  useEffect(() => {
-    setKeyword(defaultKeyword);
-    setRegion(defaultRegion);
-    setCheckIn(defaultCheckIn);
-    setCheckOut(defaultCheckOut);
-    setGuests(clamp(Number(defaultGuests || 2), 1, 30));
-  }, [defaultKeyword, defaultRegion, defaultCheckIn, defaultCheckOut, defaultGuests]);
-
-  useEffect(() => {
-    setKeyword('');
-    setShowSuggest(false);
-    setShowCalendar(false);
-    setShowGuest(false);
-  }, [activeTab]);
-
-  useEffect(() => {
-    setActiveSuggest(0);
-  }, [keyword, activeTab]);
 
   useEffect(() => {
     const onDocMouseDown = (e) => {
@@ -454,9 +431,23 @@ export default function SearchBar({ defaultKeyword = '', defaultRegion = '', def
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, []);
 
+  const handleTabChange = (idx) => {
+    setActiveTab(idx);
+    setKeyword('');
+    setRegion('');
+    setCheckIn('');
+    setCheckOut('');
+    setGuests(clamp(Number(defaultGuests || 2), 1, 30));
+    setActiveSuggest(0);
+    setShowSuggest(false);
+    setShowCalendar(false);
+    setShowGuest(false);
+  };
+
   const pickSuggestion = (item) => {
     setKeyword(item.label);
     setRegion(item.region || region);
+    setActiveSuggest(0);
     setShowSuggest(false);
   };
 
@@ -526,7 +517,7 @@ export default function SearchBar({ defaultKeyword = '', defaultRegion = '', def
       {showTabs && (
         <div style={s.tabsWrap}>
           {TAB_CONFIG.map((item, idx) => (
-            <button key={item.key} type="button" style={{ ...s.tabBtn, ...(idx === activeTab ? s.tabBtnActive : null) }} onClick={() => setActiveTab(idx)}>
+            <button key={item.key} type="button" style={{ ...s.tabBtn, ...(idx === activeTab ? s.tabBtnActive : null) }} onClick={() => handleTabChange(idx)}>
               {item.label}
             </button>
           ))}
@@ -540,6 +531,7 @@ export default function SearchBar({ defaultKeyword = '', defaultRegion = '', def
             onChange={(e) => {
               const next = e.target.value;
               setKeyword(next);
+              setActiveSuggest(0);
               setShowSuggest(next.trim().length >= 1);
               setShowCalendar(false);
               setShowGuest(false);
@@ -559,6 +551,7 @@ export default function SearchBar({ defaultKeyword = '', defaultRegion = '', def
             style={s.dateField}
             onClick={() => {
               setShowSuggest(false);
+              if (!showCalendar) setCalendarSeed(parseISO(checkIn) || new Date());
               setShowCalendar((prev) => !prev);
               setShowGuest(false);
             }}
@@ -600,18 +593,21 @@ export default function SearchBar({ defaultKeyword = '', defaultRegion = '', def
         emptyText={tab.emptyText}
       />
 
-      <DateRangePopover
-        open={showCalendar}
-        anchorRef={dateRef}
-        panelRef={calendarRef}
-        checkIn={checkIn}
-        checkOut={checkOut}
-        onChange={(nextIn, nextOut) => {
-          setCheckIn(nextIn);
-          setCheckOut(nextOut);
-        }}
-        onClose={() => setShowCalendar(false)}
-      />
+      {showCalendar && (
+        <DateRangePopover
+          key={`${calendarSeed.getTime()}-${checkIn}-${checkOut}`}
+          anchorRef={dateRef}
+          panelRef={calendarRef}
+          checkIn={checkIn}
+          checkOut={checkOut}
+          initialCursor={calendarSeed}
+          onChange={(nextIn, nextOut) => {
+            setCheckIn(nextIn);
+            setCheckOut(nextOut);
+          }}
+          onClose={() => setShowCalendar(false)}
+        />
+      )}
 
       <GuestPopover
         open={showGuest}

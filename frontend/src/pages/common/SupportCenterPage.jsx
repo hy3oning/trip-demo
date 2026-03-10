@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 import { ROLES } from '../../constants/roles';
 import { C, R } from '../../styles/tokens';
 

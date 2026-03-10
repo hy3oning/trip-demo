@@ -16,6 +16,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 public class SessionAuthenticationFilter extends OncePerRequestFilter {
+    // HttpSession -> Spring Security Authentication 브리지 역할.
+    // 컨트롤러에서 매번 세션을 직접 해석하지 않아도 ROLE 기반 인가를 붙일 수 있게 해준다.
+    //
+    // 주의:
+    // - 세션 role 문자열은 User.Role enum name 과 동일해야 한다.
+    // - principal 은 현재 userId 문자열만 넣고 있다.
+    //   나중에 필요하면 CustomUserPrincipal 로 확장 가능하지만 지금은 최소 구성이 효율적이다.
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

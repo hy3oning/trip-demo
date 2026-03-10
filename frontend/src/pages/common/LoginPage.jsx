@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ROLES } from '../../constants/roles';
-import { useAuth } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 
 const MOCK_USERS = [
   { userId: 1, email: 'user@test.com', password: '1234', name: '홍길동', role: ROLES.USER },

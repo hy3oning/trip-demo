@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 import { ROLES } from '../../constants/roles';
 import { C, MAX_WIDTH } from '../../styles/tokens';
 import LogoMark from './LogoMark';
@@ -24,8 +24,6 @@ export default function Header() {
     setMobileNavOpen(false);
     navigate('/');
   };
-
-  const initial = user?.name?.[0] || '?';
 
   const isBaseLinkActive = (to) => {
     if (to === '/lodgings') return location.pathname === '/lodgings' || location.pathname.startsWith('/lodgings/');

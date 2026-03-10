@@ -1,7 +1,7 @@
 import { INQUIRY_TYPE_LABELS } from '../../constants/inquiryTypes';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { deleteInquiry, getMyInquiries, updateInquiry } from '../../api/inquiry';
-import { useAuth } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 
 const STATUS_LABEL = { ANSWERED: '답변 완료', PENDING: '대기 중' };
 const STATUS_COLOR = { ANSWERED: '#dcfce7', PENDING: '#fef9c3' };
@@ -15,7 +15,7 @@ export default function MyInquiriesPage() {
   const [editContent, setEditContent] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const loadInquiries = () => {
+  const loadInquiries = useCallback(() => {
     getMyInquiries(user?.userId || 1)
       .then((res) => {
         setInquiries(Array.isArray(res.data) ? res.data : []);
@@ -24,13 +24,13 @@ export default function MyInquiriesPage() {
       .catch(() => {
         setLoadError('문의 목록을 새로고침하지 못했습니다. 잠시 후 다시 시도해주세요.');
       });
-  };
+  }, [user?.userId]);
 
   const resolveInquiryId = (inquiry) => inquiry?.id ?? inquiry?.inquiryId;
 
   useEffect(() => {
     loadInquiries();
-  }, [user]);
+  }, [loadInquiries]);
 
   const startEdit = (inquiry) => {
     setEditingId(resolveInquiryId(inquiry));

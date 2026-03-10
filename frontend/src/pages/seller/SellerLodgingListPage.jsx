@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 import EmptyState from '../../components/common/EmptyState';
 import { getLodgings, deleteLodging } from '../../api/lodging';
 import { C, MAX_WIDTH, R, S } from '../../styles/tokens';

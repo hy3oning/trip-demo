@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 import BookingSummaryCard from '../../components/booking/BookingSummaryCard';
 import LodgingMap from '../../components/lodging/LodgingMap';
 import { getLodging } from '../../api/lodging';
