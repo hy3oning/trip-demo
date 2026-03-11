@@ -1,3 +1,8 @@
+import { useEffect, useState } from 'react';
+import DataTable from '../../components/common/DataTable';
+import ListPageHeader from '../../components/common/ListPageHeader';
+import StatusBadge from '../../components/common/StatusBadge';
+
 const MOCK_SELLERS = [
   { sellerId: 1, name: '김판매', email: 'seller1@test.com', businessName: '제주 숙소 운영', approvalStatus: 'APPROVED', createdAt: '2026-01-05' },
   { sellerId: 2, name: '박사장', email: 'seller2@test.com', businessName: '경남 리조트', approvalStatus: 'APPROVED', createdAt: '2026-02-10' },
@@ -8,39 +13,44 @@ const STATUS_COLOR = { APPROVED: '#dcfce7', PENDING: '#fef9c3', REJECTED: '#fee2
 const STATUS_LABEL = { APPROVED: '승인', PENDING: '대기', REJECTED: '거절' };
 
 export default function AdminSellerListPage() {
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error] = useState('');
+
+  useEffect(() => {
+    // TODO(back-end): 관리자 판매자 목록 API 응답으로 교체
+    setRows(MOCK_SELLERS);
+    setLoading(false);
+  }, []);
+
+  const columns = [
+    { key: 'sellerId', label: 'ID', width: '90px' },
+    { key: 'name', label: '이름' },
+    { key: 'email', label: '이메일' },
+    { key: 'businessName', label: '사업체명' },
+    {
+      key: 'approvalStatus',
+      label: '상태',
+      width: '110px',
+      render: (row) => (
+        <StatusBadge
+          label={STATUS_LABEL[row.approvalStatus]}
+          background={STATUS_COLOR[row.approvalStatus]}
+          color={row.approvalStatus === 'APPROVED' ? '#166534' : row.approvalStatus === 'PENDING' ? '#854D0E' : '#B91C1C'}
+        />
+      ),
+    },
+    { key: 'createdAt', label: '가입일', width: '120px' },
+  ];
+
   return (
     <div style={styles.wrap}>
-      <h2 style={styles.title}>판매자 목록</h2>
-      <table style={styles.table}>
-        <thead>
-          <tr style={styles.thead}>
-            <th style={styles.th}>ID</th><th style={styles.th}>이름</th><th style={styles.th}>이메일</th><th style={styles.th}>사업체명</th><th style={styles.th}>상태</th><th style={styles.th}>가입일</th>
-          </tr>
-        </thead>
-        <tbody>
-          {MOCK_SELLERS.map(s => (
-            <tr key={s.sellerId} style={styles.tr}>
-              <td style={styles.td}>{s.sellerId}</td>
-              <td style={styles.td}>{s.name}</td>
-              <td style={styles.td}>{s.email}</td>
-              <td style={styles.td}>{s.businessName}</td>
-              <td style={styles.td}><span style={{ ...styles.badge, background: STATUS_COLOR[s.approvalStatus] }}>{STATUS_LABEL[s.approvalStatus]}</span></td>
-              <td style={styles.td}>{s.createdAt}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ListPageHeader title="판매자 목록" description={`현재 ${rows.length}명의 판매자 신청/승인 상태를 관리 중입니다.`} />
+      <DataTable columns={columns} rows={rows} loading={loading} error={error} emptyText="등록된 판매자가 없습니다." emptyDescription="판매자 신청이 들어오면 사업체명과 승인 상태를 여기서 검토할 수 있습니다." />
     </div>
   );
 }
 
 const styles = {
   wrap: { maxWidth: '1000px', margin: '0 auto', padding: '32px 24px' },
-  title: { fontSize: '22px', fontWeight: 'bold', marginBottom: '24px' },
-  table: { width: '100%', borderCollapse: 'collapse' },
-  thead: { background: '#f9fafb' },
-  th: { padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: '#6b7280', borderBottom: '1px solid #e5e7eb' },
-  tr: { borderBottom: '1px solid #f3f4f6' },
-  td: { padding: '14px 16px', fontSize: '14px' },
-  badge: { fontSize: '12px', padding: '3px 10px', borderRadius: '12px', fontWeight: '600' },
 };

@@ -1,39 +1,61 @@
 import { Link } from 'react-router-dom';
+import DashboardSection from '../../components/common/DashboardSection';
+import DashboardStatCard from '../../components/common/DashboardStatCard';
+import { C } from '../../styles/tokens';
 
 export default function AdminDashboardPage() {
-  const stats = [
-    { label: '전체 사용자', value: 128, link: '/admin/users', color: '#eff6ff' },
-    { label: '전체 판매자', value: 24, link: '/admin/sellers', color: '#f0fdf4' },
-    { label: '미처리 문의', value: 7, link: '/admin/inquiries', color: '#fef9c3' },
-  ];
+  const dashboardState = {
+    loading: false,
+    error: '',
+    stats: [
+      { label: '전체 사용자', value: 128, link: '/admin/users', background: '#eff6ff', description: '가입 회원 기준' },
+      { label: '전체 판매자', value: 24, link: '/admin/sellers', background: '#f0fdf4', description: '승인 판매자 포함' },
+      { label: '미처리 문의', value: 7, link: '/admin/inquiries', background: '#fef9c3', description: '우선 확인 필요' },
+    ],
+    quickLinks: [
+      { to: '/admin/users', label: '사용자 관리' },
+      { to: '/admin/sellers', label: '판매자 관리' },
+      { to: '/admin/inquiries', label: '문의 관리' },
+    ],
+  };
+  // TODO(back-end): 관리자 대시보드 요약 API 응답으로 stats, quickLinks를 교체한다.
 
   return (
     <div style={styles.wrap}>
-      <h2 style={styles.title}>관리자 대시보드</h2>
-      <div style={styles.grid}>
-        {stats.map(s => (
-          <Link to={s.link} key={s.label} style={{ ...styles.card, background: s.color }}>
-            <p style={styles.cardLabel}>{s.label}</p>
-            <p style={styles.cardValue}>{s.value}</p>
-          </Link>
-        ))}
-      </div>
-      <div style={styles.actions}>
-        <Link to="/admin/users" style={styles.link}>사용자 관리</Link>
-        <Link to="/admin/sellers" style={styles.link}>판매자 관리</Link>
-        <Link to="/admin/inquiries" style={styles.link}>문의 관리</Link>
-      </div>
+      <DashboardSection
+        title="관리자 대시보드"
+        description="핵심 운영 수치를 빠르게 확인하고 바로 관리 화면으로 이동할 수 있습니다."
+        loading={dashboardState.loading}
+        error={dashboardState.error}
+        empty={!dashboardState.stats.length}
+      >
+        <div style={styles.grid}>
+          {dashboardState.stats.map((stat) => (
+            <DashboardStatCard key={stat.label} {...stat} />
+          ))}
+        </div>
+        <div style={styles.actions}>
+          {dashboardState.quickLinks.map((item) => (
+            <Link to={item.to} key={item.to} style={styles.link}>{item.label}</Link>
+          ))}
+        </div>
+      </DashboardSection>
     </div>
   );
 }
 
 const styles = {
-  wrap: { maxWidth: '900px', margin: '0 auto', padding: '32px 24px' },
-  title: { fontSize: '24px', fontWeight: 'bold', marginBottom: '32px' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' },
-  card: { padding: '24px', borderRadius: '12px', textDecoration: 'none', border: '1px solid #e5e7eb', display: 'block' },
-  cardLabel: { fontSize: '14px', color: '#6b7280', margin: '0 0 8px' },
-  cardValue: { fontSize: '32px', fontWeight: 'bold', color: '#111', margin: 0 },
+  wrap: { maxWidth: '980px', margin: '0 auto', padding: '32px 24px' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' },
   actions: { display: 'flex', gap: '12px' },
-  link: { padding: '12px 20px', background: '#f3f4f6', color: '#374151', borderRadius: '8px', textDecoration: 'none', fontSize: '14px' },
+  link: {
+    padding: '12px 20px',
+    background: '#fff',
+    color: C.text,
+    borderRadius: '12px',
+    textDecoration: 'none',
+    fontSize: '14px',
+    fontWeight: '700',
+    border: `1px solid ${C.borderLight}`,
+  },
 };

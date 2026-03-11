@@ -15,6 +15,8 @@ export default function MyBookingsPage() {
   const [editCheckIn, setEditCheckIn] = useState('');
   const [editCheckOut, setEditCheckOut] = useState('');
   const [editGuests, setEditGuests] = useState(2);
+  const [actionMessage, setActionMessage] = useState('');
+  const [actionError, setActionError] = useState('');
 
   const resolveBookingId = (booking) => booking?.id ?? booking?.bookingId;
 
@@ -62,7 +64,8 @@ export default function MyBookingsPage() {
     if (!id) return;
     const nights = calcNights(editCheckIn, editCheckOut);
     if (nights <= 0) {
-      window.alert('체크아웃은 체크인보다 이후 날짜여야 합니다.');
+      setActionError('체크아웃은 체크인보다 이후 날짜여야 합니다.');
+      setActionMessage('');
       return;
     }
     const unitPrice = Number(booking.totalPrice || 0) / Math.max(1, calcNights(booking.checkIn, booking.checkOut));
@@ -77,9 +80,12 @@ export default function MyBookingsPage() {
       const res = await updateBooking(id, payload);
       const updated = res?.data || payload;
       setBookings((prev) => prev.map((item) => (resolveBookingId(item) === id ? { ...item, ...updated } : item)));
+      setActionMessage('예약 내역이 수정되었습니다.');
+      setActionError('');
       cancelEdit();
     } catch {
-      window.alert('예약 수정에 실패했습니다. 다시 시도해주세요.');
+      setActionError('예약 수정에 실패했습니다. 다시 시도해주세요.');
+      setActionMessage('');
     }
   };
 
@@ -90,9 +96,12 @@ export default function MyBookingsPage() {
     try {
       await deleteBooking(id);
       setBookings((prev) => prev.filter((item) => resolveBookingId(item) !== id));
+      setActionMessage('예약 내역이 삭제되었습니다.');
+      setActionError('');
       if (editingId === id) cancelEdit();
     } catch {
-      window.alert('예약 삭제에 실패했습니다. 다시 시도해주세요.');
+      setActionError('예약 삭제에 실패했습니다. 다시 시도해주세요.');
+      setActionMessage('');
     }
   };
 
@@ -100,6 +109,8 @@ export default function MyBookingsPage() {
     <div style={styles.wrap}>
       <h2 style={styles.title}>내 예약 내역</h2>
       {loadError && <p style={styles.loadError}>{loadError}</p>}
+      {actionMessage && <p style={styles.successText}>{actionMessage}</p>}
+      {actionError && <p style={styles.loadError}>{actionError}</p>}
       {bookings.length === 0 ? (
         <p style={styles.empty}>예약 내역이 없습니다.</p>
       ) : (
@@ -178,5 +189,6 @@ const styles = {
   primaryGhostBtn: { borderColor: '#F1B3B3', color: '#C13A3D', background: '#FFF6F6' },
   dangerBtn: { borderColor: '#FECACA', color: '#B91C1C', background: '#FEF2F2' },
   loadError: { margin: '0 0 10px', color: '#B91C1C', fontSize: '13px', fontWeight: 600 },
+  successText: { margin: '0 0 10px', color: '#15803D', fontSize: '13px', fontWeight: 600 },
   empty: { textAlign: 'center', color: '#6b7280', padding: '60px 0' },
 };

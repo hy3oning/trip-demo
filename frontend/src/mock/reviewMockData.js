@@ -1,0 +1,82 @@
+export const REVIEW_SUMMARY_BY_LODGING = {
+  1: { averageRating: 4.8, reviewCount: 142, photoReviewCount: 38 },
+  2: { averageRating: 4.5, reviewCount: 89, photoReviewCount: 19 },
+  3: { averageRating: 4.7, reviewCount: 203, photoReviewCount: 61 },
+  4: { averageRating: 4.3, reviewCount: 67, photoReviewCount: 14 },
+  5: { averageRating: 4.6, reviewCount: 115, photoReviewCount: 26 },
+  6: { averageRating: 4.9, reviewCount: 178, photoReviewCount: 49 },
+  7: { averageRating: 4.7, reviewCount: 254, photoReviewCount: 73 },
+  8: { averageRating: 4.8, reviewCount: 173, photoReviewCount: 52 },
+  9: { averageRating: 4.5, reviewCount: 98, photoReviewCount: 21 },
+};
+
+export const REVIEW_MOCK_ITEMS = [
+  {
+    reviewId: 101,
+    lodgingId: 1,
+    bookingId: 1,
+    userId: 11,
+    authorName: '여행자 민지',
+    rating: 5,
+    content: '주차도 편했고 아침에 한라산 뷰가 정말 좋아서 다시 오고 싶은 숙소였습니다. 침구 상태도 깔끔했어요.',
+    imageUrls: [
+      'https://picsum.photos/seed/tripzone-review-101-1/320/240',
+      'https://picsum.photos/seed/tripzone-review-101-2/320/240',
+    ],
+    createdAt: '2026-03-08',
+    canEdit: false,
+    canDelete: false,
+  },
+  {
+    reviewId: 102,
+    lodgingId: 1,
+    bookingId: 2,
+    userId: 12,
+    authorName: 'tripzone_guest',
+    rating: 4,
+    content: '체크인 안내가 자세해서 어렵지 않았고, 바비큐 공간이 넓었습니다. 주변이 조용해서 쉬기 좋았어요.',
+    imageUrls: [],
+    createdAt: '2026-03-04',
+    canEdit: false,
+    canDelete: false,
+  },
+  {
+    reviewId: 103,
+    lodgingId: 3,
+    bookingId: 8,
+    userId: 14,
+    authorName: '오션뷰러버',
+    rating: 5,
+    content: '경포 해변이 가까워서 산책하기 좋았고 객실 테라스에서 보는 바다가 정말 예뻤습니다.',
+    imageUrls: ['https://picsum.photos/seed/tripzone-review-103-1/320/240'],
+    createdAt: '2026-03-09',
+    canEdit: false,
+    canDelete: false,
+  },
+  {
+    reviewId: 104,
+    lodgingId: 7,
+    bookingId: 12,
+    userId: 18,
+    authorName: '도심호캉스',
+    rating: 4,
+    content: '한강이 보여서 야경이 좋았고 교통이 편했습니다. 비즈니스 일정이 있을 때 다시 이용하고 싶어요.',
+    imageUrls: [],
+    createdAt: '2026-03-10',
+    canEdit: false,
+    canDelete: false,
+  },
+];
+
+export const REVIEW_ELIGIBILITY_MOCK = {
+  loggedOut: {
+    canWrite: false,
+    reason: 'LOGIN_REQUIRED',
+    bookingId: null,
+  },
+  loggedIn: {
+    canWrite: true,
+    reason: '',
+    bookingId: 1,
+  },
+};

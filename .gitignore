@@ -28,6 +28,9 @@ pnpm-debug.log*
 # Except root README.md
 !/README.md
 !BACKEND_SETUP.md
+!doc/db-schema-reference.md
+!doc/lodging-review-plan.md
+!doc/project-structure-spec.md
 !backend/tripzone-backend/.mvn/
 !backend/tripzone-backend/.mvn/wrapper/
 !backend/tripzone-backend/.mvn/wrapper/maven-wrapper.properties

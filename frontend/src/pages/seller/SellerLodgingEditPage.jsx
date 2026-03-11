@@ -9,20 +9,22 @@ export default function SellerLodgingEditPage() {
   const { lodgingId } = useParams();
   const navigate = useNavigate();
   const src = MOCK_LODGINGS[lodgingId] || {};
+  const [submitMessage, setSubmitMessage] = useState('');
   const [form, setForm] = useState({ name: src.name || '', region: src.region || '', address: src.address || '', pricePerNight: src.pricePerNight || '', description: src.description || '', latitude: src.latitude || '', longitude: src.longitude || '' });
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert('숙소가 수정되었습니다. (mock)');
-    navigate('/seller/lodgings');
+    setSubmitMessage('숙소가 수정되었습니다. 목록으로 이동합니다.');
+    window.setTimeout(() => navigate('/seller/lodgings'), 800);
   };
 
   return (
     <div style={styles.wrap}>
       <h2 style={styles.title}>숙소 수정</h2>
       <form onSubmit={handleSubmit}>
+        {submitMessage ? <p style={styles.successText}>{submitMessage}</p> : null}
         <label style={styles.label}>숙소명</label>
         <input style={styles.input} value={form.name} onChange={set('name')} required />
         <label style={styles.label}>주소</label>
@@ -43,6 +45,7 @@ export default function SellerLodgingEditPage() {
 const styles = {
   wrap: { maxWidth: '600px', margin: '0 auto', padding: '32px 24px' },
   title: { fontSize: '24px', fontWeight: 'bold', marginBottom: '24px' },
+  successText: { margin: '0 0 16px', fontSize: '13px', color: '#15803D', fontWeight: '700' },
   label: { display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px', marginTop: '16px' },
   input: { width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' },
   btns: { display: 'flex', gap: '8px', marginTop: '24px' },

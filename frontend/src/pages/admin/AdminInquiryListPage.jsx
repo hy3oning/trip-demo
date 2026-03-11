@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { INQUIRY_TYPE_LABELS } from '../../constants/inquiryTypes';
+import DataTable from '../../components/common/DataTable';
+import FilterChips from '../../components/common/FilterChips';
+import ListPageHeader from '../../components/common/ListPageHeader';
+import StatusBadge from '../../components/common/StatusBadge';
 
 const MOCK_INQUIRIES = [
   { inquiryId: 1, senderName: '홍길동', inquiryType: 'USER_TO_SELLER', title: '주차 가능한가요?', inquiryStatus: 'PENDING', createdAt: '2026-03-01' },
@@ -13,54 +17,48 @@ const STATUS_LABEL = { ANSWERED: '답변 완료', PENDING: '대기 중' };
 
 export default function AdminInquiryListPage() {
   const [filter, setFilter] = useState('ALL');
+  const [loading] = useState(false);
+  const [error] = useState('');
 
   const filtered = filter === 'ALL' ? MOCK_INQUIRIES : MOCK_INQUIRIES.filter(i => i.inquiryType === filter);
+  const filterItems = [
+    { value: 'ALL', label: '전체' },
+    { value: 'USER_TO_SELLER', label: INQUIRY_TYPE_LABELS.USER_TO_SELLER },
+    { value: 'SELLER_TO_ADMIN', label: INQUIRY_TYPE_LABELS.SELLER_TO_ADMIN },
+    { value: 'COMMON_TO_ADMIN', label: INQUIRY_TYPE_LABELS.COMMON_TO_ADMIN },
+  ];
+
+  const columns = [
+    { key: 'senderName', label: '문의자', width: '120px' },
+    { key: 'inquiryType', label: '유형', render: (row) => INQUIRY_TYPE_LABELS[row.inquiryType] },
+    { key: 'title', label: '제목' },
+    {
+      key: 'inquiryStatus',
+      label: '상태',
+      width: '110px',
+      render: (row) => (
+        <StatusBadge
+          label={STATUS_LABEL[row.inquiryStatus]}
+          background={STATUS_COLOR[row.inquiryStatus]}
+          color={row.inquiryStatus === 'ANSWERED' ? '#166534' : '#854D0E'}
+        />
+      ),
+    },
+    { key: 'createdAt', label: '접수일', width: '120px' },
+  ];
 
   return (
     <div style={styles.wrap}>
-      <div style={styles.header}>
-        <h2 style={styles.title}>문의 관리</h2>
-        <div style={styles.filterGroup}>
-          {['ALL', 'USER_TO_SELLER', 'SELLER_TO_ADMIN', 'COMMON_TO_ADMIN'].map(t => (
-            <button key={t} onClick={() => setFilter(t)} style={{ ...styles.filterBtn, background: filter === t ? '#2563eb' : '#f3f4f6', color: filter === t ? '#fff' : '#374151' }}>
-              {t === 'ALL' ? '전체' : INQUIRY_TYPE_LABELS[t]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <table style={styles.table}>
-        <thead>
-          <tr style={styles.thead}>
-            <th style={styles.th}>문의자</th><th style={styles.th}>유형</th><th style={styles.th}>제목</th><th style={styles.th}>상태</th><th style={styles.th}>접수일</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map(i => (
-            <tr key={i.inquiryId} style={styles.tr}>
-              <td style={styles.td}>{i.senderName}</td>
-              <td style={styles.td}>{INQUIRY_TYPE_LABELS[i.inquiryType]}</td>
-              <td style={styles.td}>{i.title}</td>
-              <td style={styles.td}><span style={{ ...styles.badge, background: STATUS_COLOR[i.inquiryStatus] }}>{STATUS_LABEL[i.inquiryStatus]}</span></td>
-              <td style={styles.td}>{i.createdAt}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ListPageHeader
+        title="문의 관리"
+        description={`현재 필터 기준 ${filtered.length}건의 문의가 보입니다.`}
+        actions={<FilterChips items={filterItems} value={filter} onChange={setFilter} />}
+      />
+      <DataTable columns={columns} rows={filtered} loading={loading} error={error} emptyText="조건에 맞는 문의가 없습니다." emptyDescription="필터를 바꾸거나 새 문의가 들어오면 이 목록에서 바로 확인할 수 있습니다." />
     </div>
   );
 }
 
 const styles = {
   wrap: { maxWidth: '1000px', margin: '0 auto', padding: '32px 24px' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' },
-  title: { fontSize: '22px', fontWeight: 'bold', margin: 0 },
-  filterGroup: { display: 'flex', gap: '8px' },
-  filterBtn: { padding: '6px 14px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' },
-  table: { width: '100%', borderCollapse: 'collapse' },
-  thead: { background: '#f9fafb' },
-  th: { padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: '#6b7280', borderBottom: '1px solid #e5e7eb' },
-  tr: { borderBottom: '1px solid #f3f4f6' },
-  td: { padding: '14px 16px', fontSize: '14px' },
-  badge: { fontSize: '12px', padding: '3px 10px', borderRadius: '12px', fontWeight: '600' },
 };

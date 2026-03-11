@@ -92,6 +92,8 @@ export default function LodgingListPage() {
   const [params] = useSearchParams();
   const keyword = params.get('keyword') || '';
   const region = params.get('region') || '';
+  const benefit = params.get('benefit') || '';
+  const scope = params.get('scope') || '';
   const checkIn = params.get('checkIn') || '';
   const checkOut = params.get('checkOut') || '';
   const guests = params.get('guests') || 2;
@@ -232,10 +234,23 @@ export default function LodgingListPage() {
       <div style={s.splitWrap} className="tz-lodging-split">
         <section style={s.listPane}>
           <div style={s.filterBar}>
-            <p style={s.resultCount}>
+            <div>
+              {benefit ? (
+                <p style={s.benefitGuide}>
+                  {benefit === 'points'
+                    ? '포인트 사용 가능한 숙소를 보고 있습니다.'
+                    : scope === 'domestic'
+                      ? '쿠폰 적용 가능한 국내 숙소를 보고 있습니다.'
+                      : scope === 'all'
+                        ? '쿠폰 적용 가능한 숙소를 보고 있습니다.'
+                        : null}
+                </p>
+              ) : null}
+              <p style={s.resultCount}>
               {keyword ? `'${keyword}' 검색 결과` : region ? `'${region}' 검색 결과` : '지도에 표시된 숙소'}
               <span style={s.count}> {visibleLodgings.length}개</span>
-            </p>
+              </p>
+            </div>
             <div style={s.sortGroup}>
               {SORT_OPTIONS.map((option) => (
                 <button
@@ -435,6 +450,12 @@ const s = {
     flexWrap: 'wrap',
     gap: '12px',
   },
+  benefitGuide: {
+    margin: '0 0 8px',
+    fontSize: '12px',
+    fontWeight: '800',
+    color: C.primary,
+  },
   resultCount: { fontSize: '22px', fontWeight: '700', color: C.text, margin: 0 },
   count: { fontSize: '16px', fontWeight: '400', color: C.textSub },
   sortGroup: { display: 'flex', gap: '8px', flexWrap: 'wrap' },
@@ -451,11 +472,13 @@ const s = {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(248px, 1fr))',
     gap: '18px',
+    paddingTop: '6px',
   },
   cardWrap: {
     borderRadius: '14px',
     border: '2px solid transparent',
     transition: 'border-color .18s ease, box-shadow .18s ease',
+    paddingTop: '4px',
   },
   popupWrap: { minWidth: '160px' },
   popupMeta: { marginTop: '4px', color: '#6b7280', fontSize: '12px' },

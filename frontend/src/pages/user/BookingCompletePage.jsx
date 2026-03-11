@@ -6,7 +6,7 @@ export default function BookingCompletePage() {
   const navigate = useNavigate();
 
   if (!state) { navigate('/'); return null; }
-  const { lodgingName, checkIn, checkOut, guests, totalPrice } = state;
+  const { lodgingName, checkIn, checkOut, guests, totalPrice, couponName, usedMileage, couponDiscount, expectedMileage } = state;
 
   const rows = [
     { label: '숙소', value: lodgingName },
@@ -34,6 +34,25 @@ export default function BookingCompletePage() {
             <span style={{ ...s.infoValue, color: C.primary, fontWeight: '700', fontSize: '18px' }}>
               {totalPrice.toLocaleString()}원
             </span>
+          </div>
+        </div>
+
+        <div style={s.benefitCard}>
+          <div style={s.benefitRow}>
+            <span style={s.benefitLabel}>사용 쿠폰</span>
+            <span style={s.benefitValue}>{couponName || '미사용'}</span>
+          </div>
+          <div style={s.benefitRow}>
+            <span style={s.benefitLabel}>쿠폰 할인</span>
+            <span style={s.benefitValue}>-{Number(couponDiscount || 0).toLocaleString()}원</span>
+          </div>
+          <div style={s.benefitRow}>
+            <span style={s.benefitLabel}>사용 포인트</span>
+            <span style={s.benefitValue}>-{Number(usedMileage || 0).toLocaleString()}P</span>
+          </div>
+          <div style={{ ...s.benefitRow, borderBottom: 'none' }}>
+            <span style={s.benefitLabel}>적립 예정</span>
+            <span style={{ ...s.benefitValue, color: '#15803D' }}>{Number(expectedMileage || 0).toLocaleString()}P</span>
           </div>
         </div>
 
@@ -86,6 +105,23 @@ const s = {
     marginBottom: '32px',
     textAlign: 'left',
   },
+  benefitCard: {
+    border: `1px solid ${C.borderLight}`,
+    borderRadius: R.lg,
+    overflow: 'hidden',
+    marginBottom: '32px',
+    textAlign: 'left',
+    background: '#FAFAFA',
+  },
+  benefitRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '13px 20px',
+    borderBottom: `1px solid ${C.borderLight}`,
+  },
+  benefitLabel: { fontSize: '13px', color: C.textSub, fontWeight: '500' },
+  benefitValue: { fontSize: '14px', color: C.text, fontWeight: '700' },
   infoRow: {
     display: 'flex',
     justifyContent: 'space-between',

@@ -1,0 +1,43 @@
+// TODO(back-end): 렌터카 목록/차종/보험 옵션 API가 준비되면 이 mock 데이터를 서버 응답으로 교체한다.
+export const CAR_ITEMS = [
+  {
+    carId: 9801,
+    brand: 'Hyundai Avante',
+    region: '제주',
+    carType: '준중형',
+    fuelType: '휘발유',
+    insuranceType: '완전자차',
+    pricePerDay: 54000,
+    imageUrl: 'https://picsum.photos/seed/tripzone-car-avante/640/420',
+  },
+  {
+    carId: 9802,
+    brand: 'Kia Carnival',
+    region: '제주',
+    carType: '승합',
+    fuelType: '디젤',
+    insuranceType: '일반자차',
+    pricePerDay: 89000,
+    imageUrl: 'https://picsum.photos/seed/tripzone-car-carnival/640/420',
+  },
+  {
+    carId: 9803,
+    brand: 'Tesla Model 3',
+    region: '부산',
+    carType: '전기차',
+    fuelType: '전기',
+    insuranceType: '완전자차',
+    pricePerDay: 112000,
+    imageUrl: 'https://picsum.photos/seed/tripzone-car-tesla/640/420',
+  },
+  {
+    carId: 9804,
+    brand: 'Hyundai Tucson',
+    region: '강릉',
+    carType: 'SUV',
+    fuelType: '휘발유',
+    insuranceType: '일반자차',
+    pricePerDay: 76000,
+    imageUrl: 'https://picsum.photos/seed/tripzone-car-tucson/640/420',
+  },
+];

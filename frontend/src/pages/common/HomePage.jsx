@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { buildImageVariant as buildImageVariantFromComponent, HorizontalLodgingRow as HomeHorizontalLodgingRow, PromoEventRow as HomePromoEventRow } from '../../components/home/HomeSections';
 import SearchBar from '../../components/lodging/SearchBar';
 import { getLodgings } from '../../api/lodging';
+import { EVENT_ITEMS } from '../../mock/eventData';
+import { PROMOTION_ITEMS } from '../../mock/promotionData';
 import { C, MAX_WIDTH } from '../../styles/tokens';
 
 const quickThemes = [
@@ -13,45 +16,6 @@ const quickThemes = [
   { label: '레저·티켓', emoji: '🎫' },
   { label: '렌터카', emoji: '🚗' },
   { label: '공간대여', emoji: '🏢' },
-];
-
-const promoBanners = [
-  {
-    lead: '봄 맞이 국내여행 할인 만개!',
-    title: '최대 10% 할인\n국내숙소 쿠폰팩',
-    date: '26.03.01 - 26.03.31 23:59',
-    subtitle: '봄맞이 국내숙소 쿠폰팩',
-    imageUrl: 'https://picsum.photos/seed/tripzone-event-flower/280/280',
-    circle: '#DDF3FF',
-    gradient: 'linear-gradient(135deg, #F7FAFF 0%, #EAF4FF 55%, #FDEEEE 100%)',
-  },
-  {
-    lead: '5월 황금연휴는 한 번 더 할인!',
-    title: '최대 12%\n해외숙소 쿠폰팩',
-    date: '26.03.01 - 26.03.31 23:59',
-    subtitle: '해외숙소 봄맞이 쿠폰팩',
-    imageUrl: 'https://picsum.photos/seed/tripzone-event-tower/280/280',
-    circle: '#F7E8FF',
-    gradient: 'linear-gradient(135deg, #FDF7FF 0%, #F2E9FF 55%, #F3F0FF 100%)',
-  },
-  {
-    lead: '매주 월·목 오전 10시 오픈!',
-    title: '놀라운 특가 등장!\n국내여행 오픈런',
-    date: '24.12.01 - 99.12.31 23:59',
-    subtitle: '국내여행 오픈런',
-    imageUrl: 'https://picsum.photos/seed/tripzone-event-gift/280/280',
-    circle: '#DBF3FF',
-    gradient: 'linear-gradient(135deg, #F7FDFF 0%, #E4F5FF 55%, #EFF7FF 100%)',
-  },
-  {
-    lead: '매주 화·수·금 오전 10시 오픈!',
-    title: '놀라운 특가 등장\n해외여행 오픈런',
-    date: '24.12.01 - 99.12.31 23:59',
-    subtitle: '해외여행 오픈런',
-    imageUrl: 'https://picsum.photos/seed/tripzone-event-bag/280/280',
-    circle: '#FFF3C8',
-    gradient: 'linear-gradient(135deg, #FFFDF5 0%, #FFF2D8 55%, #FFECE2 100%)',
-  },
 ];
 
 const serviceHighlights = [
@@ -247,13 +211,18 @@ export default function HomePage() {
   }, []);
 
   const themeLoop = useMemo(() => [...quickThemes, ...quickThemes], []);
+  const promoBanners = useMemo(
+    () => PROMOTION_ITEMS.map((item) => ({ ...item, onClick: () => navigate(`/promotions/${item.slug}`) })),
+    [navigate]
+  );
+  const eventCards = useMemo(() => EVENT_ITEMS.slice(0, 4), []);
   const newOpenings = useMemo(() => {
     if (!lodgings.length) return [];
     return Array.from({ length: 2 }).flatMap((_, idx) =>
       lodgings.slice(0, 6).map((item) => ({
         ...item,
         cardKey: `new-${item.lodgingId}-${idx}`,
-        thumbnailUrl: buildImageVariant(item.thumbnailUrl, `new-${idx}-${item.lodgingId}`),
+        thumbnailUrl: buildImageVariantFromComponent(item.thumbnailUrl, `new-${idx}-${item.lodgingId}`),
       }))
     );
   }, [lodgings]);
@@ -283,7 +252,7 @@ export default function HomePage() {
             name: variantName,
             cardKey: `${row.region}-${item.lodgingId}-${rowIdx}-${loopIdx}-${itemIdx}`,
             pricePerNight: item.pricePerNight + ((variantIdx % 5) * 3200),
-            thumbnailUrl: buildImageVariant(item.thumbnailUrl, `${row.region}-${variantIdx}-${item.lodgingId}`),
+            thumbnailUrl: buildImageVariantFromComponent(item.thumbnailUrl, `${row.region}-${variantIdx}-${item.lodgingId}`),
           };
         })
       );
@@ -349,17 +318,47 @@ export default function HomePage() {
       <section style={s.sectionCompact}>
         <div style={s.inner}>
           <div style={s.sectionHead}>
-            <h2 style={s.sectionTitle}>진행 중인 이벤트</h2>
-            <button style={s.linkBtn}>더보기</button>
+            <h2 style={s.sectionTitle}>진행 중인 프로모션</h2>
+            <button style={s.linkBtn} onClick={() => navigate('/promotions')}>더보기</button>
           </div>
-          <PromoEventRow banners={promoBanners} />
+          <HomePromoEventRow banners={promoBanners} />
+        </div>
+      </section>
+
+      <section style={s.sectionCompact}>
+        <div style={s.inner}>
+          <div style={s.sectionHead}>
+            <h2 style={s.sectionTitle}>참여형 이벤트</h2>
+            <button style={s.linkBtn} onClick={() => navigate('/events')}>더보기</button>
+          </div>
+          <div style={s.eventGrid}>
+            {eventCards.map((item) => (
+              <article key={item.slug} style={s.eventCard} className="tz-lift-soft" onClick={() => navigate(`/events/${item.slug}`)}>
+                <div style={{ ...s.eventVisual, background: item.gradient }}>
+                  <div>
+                    <p style={s.eventLead}>{item.lead}</p>
+                    <h3 style={s.eventTitle}>{item.title}</h3>
+                    <p style={s.eventSubtitle}>{item.subtitle}</p>
+                  </div>
+                  <div style={{ ...s.eventCircle, background: item.circle }}>
+                    <img src={item.imageUrl} alt={item.subtitle} style={s.eventImage} />
+                  </div>
+                </div>
+                <div style={s.eventBody}>
+                  <p style={s.eventDate}>{item.date}</p>
+                  <p style={s.eventDesc}>{item.description}</p>
+                  <span style={s.eventAction}>이벤트 참여 정보 보기</span>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
       <section style={s.sectionAlt}>
         <div style={s.inner}>
           {lodgingRows.map((row) => (
-            <HorizontalLodgingRow
+            <HomeHorizontalLodgingRow
               key={row.title}
               title={row.title}
               cards={row.cards}
@@ -615,6 +614,18 @@ const s = {
   promoCircleImage: { width: '100%', height: '100%', objectFit: 'cover', borderRadius: '999px' },
   promoSub: { margin: '10px 0 2px', fontSize: '13px', fontWeight: 700, color: '#343434' },
   promoDate: { margin: 0, fontSize: '12px', color: '#777777', fontWeight: 500 },
+  eventGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px' },
+  eventCard: { background: '#fff', border: `1px solid ${C.borderLight}`, borderRadius: '24px', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 12px 28px rgba(15,23,42,0.05)' },
+  eventVisual: { minHeight: '200px', padding: '22px', display: 'flex', justifyContent: 'space-between', gap: '18px', alignItems: 'center' },
+  eventLead: { margin: '0 0 8px', fontSize: '12px', fontWeight: '800', color: C.primary },
+  eventTitle: { margin: '0 0 10px', fontSize: '24px', lineHeight: 1.15, color: C.text, whiteSpace: 'pre-line' },
+  eventSubtitle: { margin: 0, fontSize: '14px', color: C.textSub, fontWeight: '700' },
+  eventCircle: { width: '84px', height: '84px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' },
+  eventImage: { width: '100%', height: '100%', objectFit: 'cover' },
+  eventBody: { padding: '20px 22px 22px' },
+  eventDate: { margin: '0 0 10px', fontSize: '13px', color: C.textLight, fontWeight: '700' },
+  eventDesc: { margin: '0 0 16px', fontSize: '14px', lineHeight: 1.7, color: C.textSub },
+  eventAction: { display: 'inline-flex', padding: '10px 14px', borderRadius: '999px', background: '#FFF1F1', color: C.primary, fontSize: '13px', fontWeight: '800' },
   rowSection: { marginBottom: '34px' },
   rowHeader: {
     display: 'flex',

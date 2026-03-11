@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { C, MAX_WIDTH } from '../../styles/tokens';
 import LogoMark from './LogoMark';
 
@@ -12,21 +13,21 @@ export default function Footer() {
 
         <div style={s.linksCol}>
           <p style={s.colTitle}>여행</p>
-          <a href="/lodgings" style={s.link}>숙소 검색</a>
-          <a href="/lodgings?region=강원" style={s.link}>강원 숙소</a>
-          <a href="/lodgings?region=제주" style={s.link}>제주 숙소</a>
+          <Link to="/lodgings" style={s.link}>숙소 검색</Link>
+          <Link to="/lodgings?region=강원" style={s.link}>강원 숙소</Link>
+          <Link to="/lodgings?region=제주" style={s.link}>제주 숙소</Link>
         </div>
 
         <div style={s.linksCol}>
           <p style={s.colTitle}>파트너</p>
-          <a href="/signup" style={s.link}>판매자 등록</a>
-          <a href="/seller" style={s.link}>판매자 센터</a>
-          <a href="/admin" style={s.link}>관리자 콘솔</a>
+          <Link to="/signup" style={s.link}>판매자 등록</Link>
+          <Link to="/seller" style={s.link}>판매자 센터</Link>
+          <Link to="/admin" style={s.link}>관리자 콘솔</Link>
         </div>
 
         <div style={s.linksCol}>
           <p style={s.colTitle}>지원</p>
-          <a href="/support" style={s.link}>문의하기</a>
+          <Link to="/support" style={s.link}>문의하기</Link>
           <span style={s.info}>평일 09:00-18:00</span>
           <span style={s.info}>support@tripzone.kr</span>
         </div>

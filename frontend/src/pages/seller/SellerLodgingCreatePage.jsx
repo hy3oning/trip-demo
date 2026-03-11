@@ -18,6 +18,7 @@ const fs = {
 
 export default function SellerLodgingCreatePage() {
   const navigate = useNavigate();
+  const [submitMessage, setSubmitMessage] = useState('');
   const [form, setForm] = useState({
     name: '', region: '', address: '', pricePerNight: '', description: '', latitude: '', longitude: '',
   });
@@ -26,8 +27,8 @@ export default function SellerLodgingCreatePage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert('숙소가 등록되었습니다. (mock)');
-    navigate('/seller/lodgings');
+    setSubmitMessage('숙소가 등록되었습니다. 목록으로 이동합니다.');
+    window.setTimeout(() => navigate('/seller/lodgings'), 800);
   };
 
   const priceDisplay = form.pricePerNight
@@ -110,6 +111,7 @@ export default function SellerLodgingCreatePage() {
           <hr style={s.hr} />
 
           {/* 제출 버튼 */}
+          {submitMessage ? <p style={s.successText}>{submitMessage}</p> : null}
           <div style={s.btnGroup}>
             <button type="submit" style={s.submitBtn}>등록하기</button>
             <button type="button" onClick={() => navigate(-1)} style={s.cancelBtn}>취소</button>
@@ -153,6 +155,7 @@ const s = {
   },
   coordHint: { fontSize: '13px', color: C.textSub, margin: '0 0 4px' },
   hr: { border: 'none', borderTop: `1px solid ${C.borderLight}`, margin: '28px 0' },
+  successText: { margin: '0 0 16px', fontSize: '13px', color: '#15803D', fontWeight: '700' },
   btnGroup: { display: 'flex', gap: '12px' },
   submitBtn: {
     flex: 1,

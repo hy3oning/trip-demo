@@ -14,6 +14,8 @@ export default function MyInquiriesPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [saving, setSaving] = useState(false);
+  const [actionMessage, setActionMessage] = useState('');
+  const [actionError, setActionError] = useState('');
 
   const loadInquiries = useCallback(() => {
     getMyInquiries(user?.userId || 1)
@@ -57,9 +59,12 @@ export default function MyInquiriesPage() {
       const res = await updateInquiry(id, payload);
       const updated = res?.data || payload;
       setInquiries((prev) => prev.map((item) => (resolveInquiryId(item) === id ? { ...item, ...updated } : item)));
+      setActionMessage('문의가 수정되었습니다.');
+      setActionError('');
       cancelEdit();
     } catch {
-      window.alert('문의 수정에 실패했습니다. 다시 시도해주세요.');
+      setActionError('문의 수정에 실패했습니다. 다시 시도해주세요.');
+      setActionMessage('');
     } finally {
       setSaving(false);
     }
@@ -72,9 +77,12 @@ export default function MyInquiriesPage() {
     try {
       await deleteInquiry(id);
       setInquiries((prev) => prev.filter((item) => resolveInquiryId(item) !== id));
+      setActionMessage('문의가 삭제되었습니다.');
+      setActionError('');
       if (editingId === id) cancelEdit();
     } catch {
-      window.alert('문의 삭제에 실패했습니다. 다시 시도해주세요.');
+      setActionError('문의 삭제에 실패했습니다. 다시 시도해주세요.');
+      setActionMessage('');
     }
   };
 
@@ -82,6 +90,8 @@ export default function MyInquiriesPage() {
     <div style={styles.wrap}>
       <h2 style={styles.title}>내 문의 내역</h2>
       {loadError && <p style={styles.loadError}>{loadError}</p>}
+      {actionMessage && <p style={styles.successText}>{actionMessage}</p>}
+      {actionError && <p style={styles.loadError}>{actionError}</p>}
       {inquiries.length === 0 ? (
         <p style={styles.empty}>문의 내역이 없습니다.</p>
       ) : (
@@ -164,5 +174,6 @@ const styles = {
   primaryGhostBtn: { borderColor: '#F1B3B3', color: '#C13A3D', background: '#FFF6F6' },
   dangerBtn: { borderColor: '#FECACA', color: '#B91C1C', background: '#FEF2F2' },
   loadError: { margin: '0 0 10px', color: '#B91C1C', fontSize: '13px', fontWeight: 600 },
+  successText: { margin: '0 0 10px', color: '#15803D', fontSize: '13px', fontWeight: 600 },
   empty: { textAlign: 'center', color: '#6b7280', padding: '60px 0' },
 };

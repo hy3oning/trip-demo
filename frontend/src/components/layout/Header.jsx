@@ -1,9 +1,73 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ROLES } from '../../constants/roles';
+import { benefitSnapshot, couponItems } from '../../mock/benefitsData';
 import { C, MAX_WIDTH } from '../../styles/tokens';
+import { buildCouponDestination, buildPointsDestination } from '../../utils/benefitNavigation';
 import LogoMark from './LogoMark';
+
+const BASE_LINKS = [
+  { to: '/lodgings', label: '숙소 검색' },
+  { to: '/lodgings?region=제주', label: '인기 지역' },
+  { to: '/support', label: '문의센터' },
+];
+
+const DROPDOWN_SHORTCUTS = [
+  { label: '예약 내역', to: '/my/bookings' },
+  { label: '최근 본 상품', to: '/recent' },
+  { label: '찜 목록', to: '/wishlist' },
+];
+
+const DROPDOWN_TRAVEL_LINKS = [
+  { label: '국내숙소', to: '/lodgings' },
+  { label: '해외숙소', to: '/overseas' },
+  { label: '패키지 여행', to: '/packages', new: true },
+  { label: '항공', to: '/flights' },
+  { label: '항공+숙소', to: '/flight-stays' },
+  { label: '레저·티켓', to: '/leisure' },
+  { label: '렌터카', to: '/cars' },
+  { label: '공간대여', to: '/spaces' },
+];
+
+const DROPDOWN_SERVICE_LINKS = [
+  { label: '이벤트', to: '/events' },
+  { label: '고객센터', to: '/support' },
+  { label: '설정', to: '/settings' },
+];
+
+const ROLE_LINKS = {
+  [ROLES.USER]: [
+    { to: '/my/bookings', label: '내 예약' },
+    { to: '/mypage', label: '마이페이지' },
+  ],
+  [ROLES.SELLER]: [
+    { to: '/seller/lodgings', label: '내 숙소' },
+    { to: '/mypage', label: '마이페이지' },
+  ],
+  [ROLES.ADMIN]: [
+    { to: '/admin', label: '관리자' },
+  ],
+};
+
+function isLinkActive(location, to) {
+  if (to === '/lodgings') {
+    return (
+      (location.pathname === '/lodgings' && !new URLSearchParams(location.search).has('region')) ||
+      location.pathname.startsWith('/lodgings/')
+    );
+  }
+  if (to.startsWith('/lodgings?region=')) {
+    return location.pathname === '/lodgings' && new URLSearchParams(location.search).has('region');
+  }
+  if (to === '/support') {
+    return location.pathname === '/support' || location.pathname.startsWith('/inquiry');
+  }
+  if (to === '/mypage') {
+    return location.pathname === '/mypage';
+  }
+  return location.pathname === to || location.pathname.startsWith(`${to}/`);
+}
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -11,12 +75,8 @@ export default function Header() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
-  const baseLinks = [
-    { to: '/lodgings', label: '숙소 검색', primary: true },
-    { to: '/lodgings?region=제주', label: '인기 지역' },
-    { to: '/support', label: '문의센터' },
-  ];
+  const profileWrapRef = useRef(null);
+  // TODO(back-end): 헤더 혜택 숫자는 사용자 요약 API 응답을 붙이면 된다.
 
   const handleLogout = () => {
     logout();
@@ -25,25 +85,42 @@ export default function Header() {
     navigate('/');
   };
 
-  const isBaseLinkActive = (to) => {
-    if (to === '/lodgings') return location.pathname === '/lodgings' || location.pathname.startsWith('/lodgings/');
-    if (to.startsWith('/lodgings?region=')) return location.pathname === '/lodgings' && new URLSearchParams(location.search).has('region');
-    if (to === '/support') return location.pathname === '/support' || location.pathname.startsWith('/inquiry');
-    return location.pathname === to;
-  };
+  useEffect(() => {
+    setMenuOpen(false);
+    setMobileNavOpen(false);
+  }, [location.pathname, location.search]);
 
-  const roleLinks = {
-    [ROLES.USER]: [
-      { to: '/my/bookings', label: '내 예약' },
-      { to: '/mypage', label: '마이페이지' },
-    ],
-    [ROLES.SELLER]: [
-      { to: '/seller/lodgings', label: '내 숙소' },
-      { to: '/mypage', label: '마이페이지' },
-    ],
-    [ROLES.ADMIN]: [
-      { to: '/admin', label: '관리자' },
-    ],
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const handleClickOutside = (event) => {
+      if (profileWrapRef.current && !profileWrapRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
+
+  const renderDropdownEntry = (item) => {
+    const isReady = item.to && item.to !== '#';
+
+    if (!isReady) {
+      return (
+        <span style={{ ...s.dropdownMenuItem, ...s.dropdownMenuItemDisabled }}>
+          <span>{item.label}</span>
+          <span style={s.badgeSoon}>준비중</span>
+        </span>
+      );
+    }
+
+    return (
+      <Link to={item.to} style={s.dropdownMenuItem} onClick={() => setMenuOpen(false)}>
+        <span>{item.label}</span>
+        {item.new && <span style={s.badgeNew}>new</span>}
+      </Link>
+    );
   };
 
   return (
@@ -69,19 +146,10 @@ export default function Header() {
           box-shadow: 0 0 0 2px rgba(232,72,74,0.12);
         }
         .tz-header-nav-item.is-active {
-          color: #353535 !important;
-          background: #fff !important;
-          border-color: #C8CED8 !important;
-          box-shadow: none;
-        }
-        .tz-header-nav-item.tz-header-nav-item-primary.is-active {
           color: #fff !important;
           background: linear-gradient(135deg, #F05A5C 0%, #E8484A 100%) !important;
           border-color: #E8484A !important;
           box-shadow: none;
-        }
-        .tz-header-nav-item.tz-header-nav-item-primary:hover {
-          filter: brightness(0.98);
         }
         @media (max-width: 1280px) {
           .tz-header-inner { grid-template-columns: auto 1fr auto !important; }
@@ -118,12 +186,12 @@ export default function Header() {
         </Link>
 
         <nav style={s.nav} className="tz-header-nav">
-          {baseLinks.map((link) => (
+          {BASE_LINKS.map((link) => (
             <Link
               key={link.to}
               to={link.to}
-              className={`tz-header-nav-item ${link.primary ? 'tz-header-nav-item-primary' : ''} ${isBaseLinkActive(link.to) ? 'is-active' : ''}`}
-              style={{ ...(link.primary ? s.navSearchLink : s.navLink), ...(isBaseLinkActive(link.to) ? (link.primary ? s.navSearchLinkActive : s.navLinkActive) : null) }}
+              className={`tz-header-nav-item ${isLinkActive(location, link.to) ? 'is-active' : ''}`}
+              style={{ ...s.navLink, ...(isLinkActive(location, link.to) ? s.navLinkActive : null) }}
             >
               {link.label}
             </Link>
@@ -137,20 +205,20 @@ export default function Header() {
               <Link to="/signup" style={s.signupBtn}>회원가입</Link>
             </>
           ) : (
-            <div style={s.profileWrap}>
-              <button style={s.profilePillBtn} onClick={() => setMenuOpen(v => !v)}>
+            <div style={s.profileWrap} ref={profileWrapRef}>
+              <button type="button" style={s.profilePillBtn} onClick={() => setMenuOpen(v => !v)} aria-expanded={menuOpen}>
                 <div style={s.profilePillIcon}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 2L11 13" />
                     <path d="M22 2L15 22L11 13L2 9L22 2Z" />
                   </svg>
                 </div>
-                <div style={s.profilePillText}>
-                  <div style={s.profilePillName}>{user.name}</div>
-                  <div style={s.profilePillGrade}>
-                    <span style={{ color: '#8A7DF5', fontWeight: 800 }}>Basic</span> 회원
+                  <div style={s.profilePillText}>
+                    <div style={s.profilePillName}>{user.name}</div>
+                    <div style={s.profilePillGrade}>
+                    <span style={{ color: '#8A7DF5', fontWeight: 800 }}>{benefitSnapshot.currentGrade}</span> 회원
+                    </div>
                   </div>
-                </div>
                 <div style={s.profilePillHamburger}>☰</div>
               </button>
               {menuOpen && (
@@ -163,69 +231,55 @@ export default function Header() {
 
                     <div style={s.dropdownGradeCard}>
                       <div style={s.dropdownGradeTop}>
-                        <span style={s.dropdownGradeText}>Basic</span>
-                        <span style={s.dropdownBenefitsBtn}>혜택 안내</span>
+                        <span style={s.dropdownGradeText}>{benefitSnapshot.currentGrade}</span>
+                        <Link to="/benefits" style={s.dropdownBenefitsBtn} onClick={() => setMenuOpen(false)}>혜택 안내</Link>
                       </div>
                       <div style={s.dropdownGradeDesc}>
-                        <span style={s.dropdownGradeHighlight}>3번 더 예약하면</span>
-                        <br />다음 등급 쿠폰팩 지급!
+                        <span style={s.dropdownGradeHighlight}>{benefitSnapshot.nextGradeRemainBookings}번 더 예약하면</span>
+                        <br />{benefitSnapshot.nextGrade} 등급 혜택이 열려요
                       </div>
                     </div>
 
                     <div style={s.dropdownBenefitLinks}>
                       <div style={s.dropdownBenefitItem}>
                         <div style={s.benefitLabel}>포인트</div>
-                        <div style={s.benefitValue}>0</div>
+                        <div style={s.benefitValue}>{benefitSnapshot.mileageBalance.toLocaleString()}</div>
+                        <Link to={buildPointsDestination()} style={s.benefitActionBtn} onClick={() => setMenuOpen(false)}>
+                          사용하러 가기
+                        </Link>
                       </div>
                       <div style={s.dropdownBenefitDivider} />
                       <div style={s.dropdownBenefitItem}>
                         <div style={s.benefitLabel}>쿠폰</div>
-                        <div style={s.benefitValue}>1</div>
+                        <div style={s.benefitValue}>{benefitSnapshot.couponCount}</div>
+                        <Link to={buildCouponDestination(couponItems.find((coupon) => coupon.status === 'ISSUED'))} style={s.benefitActionBtn} onClick={() => setMenuOpen(false)}>
+                          사용하러 가기
+                        </Link>
                       </div>
                     </div>
                   </div>
 
                   <ul style={s.dropdownMenu}>
-                    {[
-                      { label: '예약 내역', to: '/my/bookings' },
-                      { label: '최근 본 상품', to: '#' },
-                      { label: '찜 목록', to: '#' }
-                    ].map(m => (
+                    {DROPDOWN_SHORTCUTS.map(m => (
                       <li key={m.label}>
-                        <Link to={m.to} style={s.dropdownMenuItem} onClick={() => setMenuOpen(false)}>{m.label}</Link>
+                        {renderDropdownEntry(m)}
                       </li>
                     ))}
 
                     <li><div style={s.dropdownMenuSection} /></li>
                     <li><div style={s.dropdownMenuHeader}>모든 여행</div></li>
 
-                    {[
-                      { label: '국내숙소', to: '/lodgings' },
-                      { label: '해외숙소', to: '#' },
-                      { label: '패키지 여행', to: '#', new: true },
-                      { label: '항공', to: '#' },
-                      { label: '항공+숙소', to: '#' },
-                      { label: '레저·티켓', to: '#' },
-                      { label: '렌터카', to: '#' },
-                      { label: '공간대여', to: '#' },
-                    ].map(m => (
+                    {DROPDOWN_TRAVEL_LINKS.map(m => (
                       <li key={m.label}>
-                        <Link to={m.to} style={s.dropdownMenuItem} onClick={() => setMenuOpen(false)}>
-                          {m.label}
-                          {m.new && <span style={s.badgeNew}>new</span>}
-                        </Link>
+                        {renderDropdownEntry(m)}
                       </li>
                     ))}
 
                     <li><div style={s.dropdownMenuSection} /></li>
 
-                    {[
-                      { label: '이벤트', to: '#' },
-                      { label: '고객센터', to: '/support' },
-                      { label: '설정', to: '#' },
-                    ].map(m => (
+                    {DROPDOWN_SERVICE_LINKS.map(m => (
                       <li key={m.label}>
-                        <Link to={m.to} style={s.dropdownMenuItem} onClick={() => setMenuOpen(false)}>{m.label}</Link>
+                        {renderDropdownEntry(m)}
                       </li>
                     ))}
                     <li><div style={s.dropdownMenuSection} /></li>
@@ -255,13 +309,13 @@ export default function Header() {
       {mobileNavOpen && (
         <div style={s.mobilePanel} className="tz-header-mobile-panel">
           <div style={s.mobileLinks}>
-            {baseLinks.map((link) => (
-              <Link key={link.to} to={link.to} style={link.primary ? s.mobilePrimaryLink : s.mobileLink} onClick={() => setMobileNavOpen(false)}>
+            {BASE_LINKS.map((link) => (
+              <Link key={link.to} to={link.to} style={isLinkActive(location, link.to) ? s.mobilePrimaryLink : s.mobileLink} onClick={() => setMobileNavOpen(false)}>
                 {link.label}
               </Link>
             ))}
-            {user && (roleLinks[user.role] || []).map((link) => (
-              <Link key={link.to} to={link.to} style={s.mobileLink} onClick={() => setMobileNavOpen(false)}>{link.label}</Link>
+            {user && (ROLE_LINKS[user.role] || []).map((link) => (
+              <Link key={link.to} to={link.to} style={isLinkActive(location, link.to) ? s.mobilePrimaryLink : s.mobileLink} onClick={() => setMobileNavOpen(false)}>{link.label}</Link>
             ))}
           </div>
           <div style={s.mobileActions}>
@@ -314,26 +368,9 @@ const s = {
     whiteSpace: 'nowrap',
   },
   navLinkActive: {
-    color: '#353535',
-    background: '#fff',
-    borderColor: '#C8CED8',
-  },
-  navSearchLink: {
-    fontSize: '14px',
-    fontWeight: '800',
     color: '#fff',
-    textDecoration: 'none',
-    padding: '8px 14px',
-    borderRadius: '999px',
     background: 'linear-gradient(135deg, #F05A5C 0%, #E8484A 100%)',
     border: '1px solid #E8484A',
-    whiteSpace: 'nowrap',
-    transition: 'filter 0.15s ease, color 0.15s ease, background 0.15s ease, border-color 0.15s ease',
-  },
-  navSearchLinkActive: {
-    color: '#fff',
-    background: 'linear-gradient(135deg, #F05A5C 0%, #E8484A 100%)',
-    borderColor: '#E8484A',
     boxShadow: 'none',
   },
   actions: { display: 'flex', alignItems: 'center', gap: '8px', minWidth: '220px', justifyContent: 'flex-end', flexWrap: 'nowrap' },
@@ -501,7 +538,7 @@ const s = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '14px 0',
-    cursor: 'pointer',
+    gap: '8px',
   },
   benefitLabel: {
     fontSize: '12px',
@@ -512,6 +549,18 @@ const s = {
   benefitValue: {
     fontSize: '16px',
     color: '#333',
+    fontWeight: '800',
+  },
+  benefitActionBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '6px 10px',
+    borderRadius: '999px',
+    background: '#FFF1F1',
+    color: C.primary,
+    textDecoration: 'none',
+    fontSize: '11px',
     fontWeight: '800',
   },
   dropdownBenefitDivider: {
@@ -527,6 +576,7 @@ const s = {
   dropdownMenuItem: {
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: '12px 20px',
     fontSize: '15px',
     fontWeight: '500',
@@ -534,6 +584,11 @@ const s = {
     textDecoration: 'none',
     cursor: 'pointer',
     transition: 'background 0.2s',
+  },
+  dropdownMenuItemDisabled: {
+    color: '#9CA3AF',
+    cursor: 'default',
+    background: '#FAFAFA',
   },
   dropdownMenuSection: {
     borderTop: '1px solid #F0F0F0',
@@ -552,6 +607,15 @@ const s = {
     fontWeight: '700',
     padding: '2px 6px',
     borderRadius: '4px',
+    marginLeft: '8px',
+  },
+  badgeSoon: {
+    background: '#ECECEC',
+    color: '#8A8A8A',
+    fontSize: '10px',
+    fontWeight: '700',
+    padding: '3px 8px',
+    borderRadius: '999px',
     marginLeft: '8px',
   },
   mobilePanel: {
