@@ -67,6 +67,11 @@ npm run dev
 ```
 
 기본적으로 Vite proxy를 통해 `/api` 요청이 mock 서버로 전달됩니다.
+정적 참고 페이지도 같은 dev 서버에서 함께 열립니다.
+
+- 메인 앱: `http://localhost:5173`
+- 웹 프레젠테이션: `http://localhost:5173/presentation/index.html`
+- DB 스키마 대시보드: `http://localhost:5173/schema/index.html`
 
 ## Build Check
 
